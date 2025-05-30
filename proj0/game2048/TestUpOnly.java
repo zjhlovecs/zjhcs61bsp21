@@ -27,7 +27,7 @@ public class TestUpOnly extends TestUtils {
                 {0, 0, 0, 0},
         };
 
-        model = new Model(before, 0, 0, false);
+        model = new Model(before, 0, 0, true);
         String prevBoard = model.toString();
         boolean changed = model.tilt(Side.NORTH);
         checkChanged(Side.NORTH, true, changed);

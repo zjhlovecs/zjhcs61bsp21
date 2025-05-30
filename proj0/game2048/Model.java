@@ -54,7 +54,7 @@ public class Model extends Observable {
 
     /** Return the number of squares on one side of the board.
      *  Used for testing. Should be deprecated and removed. */
-    public int size() {
+    public  int size() {
         return board.size();
     }
 
@@ -114,7 +114,53 @@ public class Model extends Observable {
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
 
+
         checkGameOver();
+        this.board.setViewingPerspective(side);
+        boolean[][] merged = new boolean[board.size()][board.size()];
+        for (int r = 2; r >= 0; r--) {
+            for (int c = 0; c <= 3; c++) {
+                Tile t = board.tile(c, r);
+
+                if (t != null) {
+                    // 处理当前tile：判断是否需要move，需要move到哪里，是否merge？
+                    // 向上移动，c不变，r加一
+                    int dc = c, dr = r + 1;
+                    while (dr <= 3) {
+                        Tile dt = board.tile(dc, dr);
+                        if (dt != null) {
+                            // 如果不应该移动到(dc,dr)，dr回退一格
+                            if (merged[dc][dr] == true || dt.value() != t.value()) {
+                                dr--;
+                            }
+                            break;
+                        }
+
+                        if (dr == 3) {
+                            break;
+                        }
+
+                        dr++;
+                    }
+
+                    // 如果发生了移动，设置changed
+                    if (dr != r) {
+                        changed = true;
+                    }
+                    // 如果发生了merge
+                    if (board.move(dc, dr, t)) {
+                        merged[dc][dr] = true;
+                        score += board.tile(dc, dr).value();
+                    }
+                }
+            }
+        }
+
+
+        board.setViewingPerspective(Side.NORTH);
+
+
+
         if (changed) {
             setChanged();
         }
@@ -140,8 +186,16 @@ public class Model extends Observable {
         // TODO: Fill in this function.
         System.out.println(b.tile(0,0));
         if(b==null){
-            return false;
+            return true;
         }
+        for (int col = 0; col < b.size(); col += 1){
+            for (int row = 0; row < b.size(); row += 1){
+                if(b.tile(col,row)==null){
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 
@@ -152,7 +206,19 @@ public class Model extends Observable {
      */
     public static boolean maxTileExists(Board b) {
         // TODO: Fill in this function.
-
+       Tile t;
+       t=b.tile(0,0);
+        for (int col = 0; col < b.size(); col += 1) {
+            for (int row = 0; row < b.size(); row += 1) {
+                t = b.tile(col, row);
+                if(t==null){
+                    continue;
+                }
+                if (t.value() == MAX_PIECE) {
+                    return true;
+                }
+            }
+        }
 
         return false;
     }
@@ -165,6 +231,24 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        return emptySpaceExists(b) || mergeMoveExists(b);
+    }
+
+    private static boolean mergeMoveExists(Board b) {
+        int[][] neighbors = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}; // 上下左右
+        int len = b.size();
+        for (Tile t : b) {
+            int c = t.col();    // x
+            int r = t.row();    // y
+            for (int i = 0; i < 4; i++) {
+                int nc = c + neighbors[i][0];
+                int nr = r + neighbors[i][1];
+                if ((0 <= nc && nc < len) && (0 <= nr && nr < len)
+                        && (b.tile(nr, nc).value() == t.value())) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 

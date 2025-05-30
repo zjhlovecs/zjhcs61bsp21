@@ -103,6 +103,7 @@ public class TestEmptySpace {
 
         b = new Board(rawVals, 0);
 
+
         assertTrue("Board is not full\n" + b,
                 Model.emptySpaceExists(b));
     }
